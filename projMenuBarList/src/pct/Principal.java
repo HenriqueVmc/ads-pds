@@ -66,13 +66,13 @@ public class Principal implements ListSelectionListener, ActionListener {
         JPanel tudo = new JPanel(new BorderLayout());
         JFrame frame = new JFrame("JList");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(600, 420);
+        frame.setSize(600, 428);
         frame.setVisible(true);
         frame.setContentPane(tudo);
 
         //MENU        
         menuBar = new JMenuBar();
-        menu = new JMenu("A Menu");
+        menu = new JMenu("ARQUIVO");
         menuBar.add(menu);
 
         open = new JMenuItem("OPEN");
@@ -107,10 +107,10 @@ public class Principal implements ListSelectionListener, ActionListener {
         JPanel panelTitulo = new JPanel(new GridLayout(3, 1));
         JPanel panelDescricao = new JPanel(new GridLayout(2, 1));
 
-        lblTitulo = new JLabel("T�tulo:");
+        lblTitulo = new JLabel("Título:");
         txtTitulo = new JTextField(25);
-        lblDescricao = new JLabel("Descri��o:");
-        txtArea = new JTextArea(15, 24);
+        lblDescricao = new JLabel("Descrição:");
+        txtArea = new JTextArea(16, 24);
         JScrollPane panelTextA = new JScrollPane(txtArea);
         panelTextA.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
@@ -121,6 +121,7 @@ public class Principal implements ListSelectionListener, ActionListener {
 
         JPanel panelButtons = new JPanel();
         btnAdd = new JButton("Adicionar");
+        btnAdd.setActionCommand("Add");
         btnDelete = new JButton("Remover");
         btnEdit = new JButton("Alterar");
 
@@ -140,12 +141,17 @@ public class Principal implements ListSelectionListener, ActionListener {
     public void valueChanged(ListSelectionEvent e) {
         // TODO Auto-generated method stub
         if (list.getSelectedValue().equalsIgnoreCase("")) {
-
+            
         }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        
+        if(e.getActionCommand().equals("Add")){
+            
+        }
+        
         chooser = new JFileChooser();
         if (chooser.showOpenDialog(menu) == JFileChooser.APPROVE_OPTION) {
 
