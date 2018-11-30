@@ -166,13 +166,13 @@ public class Principal implements ListSelectionListener, ActionListener {
 
         if (selectedIndex != -1) {
             Publicacao notaSelecionada = anotacoes.get(selectedIndex);
-            setNota(notaSelecionada);
+            setNota(notaSelecionada);          
         }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-
+        
         if (e.getActionCommand().equalsIgnoreCase("Add")) {
 
             Publicacao nota = new Publicacao();
