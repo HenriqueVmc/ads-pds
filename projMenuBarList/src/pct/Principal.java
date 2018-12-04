@@ -2,7 +2,6 @@ package pct;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,13 +12,8 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.spi.FileTypeDetector;
 import java.util.ArrayList;
-
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -34,17 +28,13 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.ListModel;
-import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.filechooser.FileFilter;
 
 public class Principal implements ListSelectionListener, ActionListener {
 
-    //https://coderanch.com/t/275345/java/File-Open-Save-Operations-Swing
     JList<String> list;
     JScrollPane scroll;
     JTextArea txtArea;
@@ -62,11 +52,8 @@ public class Principal implements ListSelectionListener, ActionListener {
     FileInputStream fis;
     BufferedReader br;
     BufferedWriter bw;
-    //static Principal app;
 
-    Publicacao nota;
-
-    ArrayList<Publicacao> anotacoes = new ArrayList<Publicacao>();
+    ArrayList<Publicacao> anotacoes;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -78,6 +65,8 @@ public class Principal implements ListSelectionListener, ActionListener {
 
     public Principal() {
 
+    	anotacoes = new ArrayList<Publicacao>();
+    	
         JPanel tudo = new JPanel(new BorderLayout());
         JFrame frame = new JFrame("JList");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -183,18 +172,22 @@ public class Principal implements ListSelectionListener, ActionListener {
             anotacoes.add(nota);
 
             listModel.addElement(nota.getTitulo());
-
+        	
             txtArea.setText("");
+        	
             txtTitulo.setText("");
+            
+            list.clearSelection();
         }
 
         if (e.getActionCommand().equalsIgnoreCase("Delete")) {
 
             int selectedIndex = list.getSelectedIndex();
-
-            anotacoes.remove(selectedIndex);
-            listModel.remove(selectedIndex);
-
+            
+            if(selectedIndex >= 0) {
+            	anotacoes.remove(selectedIndex);
+            	listModel.remove(selectedIndex);
+            }
             txtArea.setText("");
             txtTitulo.setText("");
         }
@@ -203,15 +196,17 @@ public class Principal implements ListSelectionListener, ActionListener {
 
             int selectedIndex = list.getSelectedIndex();
 
-            Publicacao p = anotacoes.get(selectedIndex);
-
-            p.setTitulo(txtTitulo.getText());
-            p.setDescricao(txtArea.getText());
-
-            listModel.set(selectedIndex, p.getTitulo());
-
+            if(selectedIndex >= 0) {
+	            Publicacao p = anotacoes.get(selectedIndex);
+	
+	            p.setTitulo(txtTitulo.getText());
+	            p.setDescricao(txtArea.getText());
+	
+	            listModel.set(selectedIndex, p.getTitulo());
+            }
             txtArea.setText("");
             txtTitulo.setText("");
+            list.clearSelection();
         }
 
         if (e.getSource() == open) {
@@ -238,6 +233,7 @@ public class Principal implements ListSelectionListener, ActionListener {
 
                     txtTitulo.setText(titulo);
                     txtArea.setText(descricao);
+                    list.clearSelection();
 
                 } catch (IOException ea) {
                     // TODO Auto-generated catch block
@@ -257,6 +253,7 @@ public class Principal implements ListSelectionListener, ActionListener {
                     bw = new BufferedWriter(writer);
                     bw.write(text);
                     bw.close();
+                    list.clearSelection();
 
                 } catch (Exception ae) {
                 }
