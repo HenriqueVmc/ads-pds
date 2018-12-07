@@ -5,10 +5,9 @@ package pct;
  */
 public class Aluno {
 
-    private String nome, cpf, sexo;
+    private String nome, cpf, curso;
     private double renda;
-    private short ano;
-    private boolean privado;
+    private short ano, sexo;
 
     public String getNome() {
         return nome;
@@ -26,11 +25,11 @@ public class Aluno {
         this.cpf = cpf;
     }
 
-    public String getSexo() {
+    public short getSexo() {
         return sexo;
     }
 
-    public void setSexo(String sexo) {
+    public void setSexo(short sexo) {
         this.sexo = sexo;
     }
 
@@ -50,12 +49,12 @@ public class Aluno {
         this.ano = ano;
     }
 
-    public boolean isPrivado() {
-        return privado;
+    public String getCurso() {
+        return curso;
     }
 
-    public void setPrivado(boolean privado) {
-        this.privado = privado;
+    public void setCurso(String curso) {
+        this.curso = curso;
     }
 
      

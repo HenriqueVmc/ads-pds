@@ -10,9 +10,11 @@ import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -61,10 +63,11 @@ public class Principal implements ActionListener {
     private JFrame jFrame;
     private JTextField jTextFieldNome, jTextFieldRendaFamiliar, jTextFieldAno;
     private JFormattedTextField jFormattedTextFieldCPF;
-    private JComboBox jComboBoxSexo;
-    private JCheckBox jCheckBoxPrivado;
-    private JLabel jLabelAno, jLabelNome, jLabelRendaFamiliar, jLabelSexo, jLabelCPF;
-    private JButton jButtonAdicionar, jButtonEditar, jButtonExcluir;
+    private JComboBox jComboBoxCurso;
+    private JCheckBox jCheckBoxSexoM;
+    private JCheckBox jCheckBoxSexoF;
+    private JLabel jLabelAno, jLabelNome, jLabelRendaFamiliar, jLabelCurso, jLabelCPF;
+    private JButton jButtonSalvar, jButtonEditar, jButtonExcluir;
     private JTable jTable;
     private JScrollPane jScrollPane;
     private DefaultTableModel dtm;
@@ -73,6 +76,11 @@ public class Principal implements ActionListener {
     JMenu menu;
     JMenuItem open, save, quit;
     //DefaultListModel listModel;
+
+    JFileChooser chooser;
+    FileInputStream fis;
+    BufferedReader br;
+    BufferedWriter bw;
 
     private void configurarJFormattedTextField() {
         try {
@@ -86,11 +94,11 @@ public class Principal implements ActionListener {
 
     private void configurarJComboBox() {
         DefaultComboBoxModel<String> modelo = new DefaultComboBoxModel<>();
-        modelo.addElement("Feminino");
-        modelo.addElement("Masculino");
-        modelo.addElement("Outros");
-        jComboBoxSexo.setModel(modelo);
-        jComboBoxSexo.setSelectedIndex(-1);
+        modelo.addElement("ADS");
+        modelo.addElement("PG");
+        modelo.addElement("MODA");
+        jComboBoxCurso.setModel(modelo);
+        jComboBoxCurso.setSelectedIndex(-1);
     }
 
     public Principal() {
@@ -99,7 +107,7 @@ public class Principal implements ActionListener {
         jFrame = new JFrame("Cadastro de Aluno");
         jFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         jFrame.setLayout(null);
-        jFrame.setSize(700, 500);
+        jFrame.setSize(739, 380);
         jFrame.setLocationRelativeTo(null);
         jFrame.setContentPane(tudo);
 
@@ -126,7 +134,7 @@ public class Principal implements ActionListener {
 
         //LEFT
         JPanel panelLeft = new JPanel();
-        JPanel panelComponents = new JPanel(new GridLayout(6, 1));
+        JPanel panelComponents = new JPanel(new GridLayout(7, 1));
 
         JPanel nome = new JPanel(new GridLayout(2, 1));
         jLabelNome = new JLabel("Nome");
@@ -146,11 +154,11 @@ public class Principal implements ActionListener {
         cpf.add(jLabelCPF);
         cpf.add(jFormattedTextFieldCPF);
 
-        JPanel sexo = new JPanel(new GridLayout(2, 1));
-        jLabelSexo = new JLabel("Categoria");
-        jComboBoxSexo = new JComboBox();
-        sexo.add(jLabelSexo);
-        sexo.add(jComboBoxSexo);
+        JPanel Curso = new JPanel(new GridLayout(2, 1));
+        jLabelCurso = new JLabel("Categoria");
+        jComboBoxCurso = new JComboBox();
+        Curso.add(jLabelCurso);
+        Curso.add(jComboBoxCurso);
 
         JPanel renda = new JPanel(new GridLayout(2, 1));
         jLabelRendaFamiliar = new JLabel("Renda Familiar");
@@ -158,16 +166,27 @@ public class Principal implements ActionListener {
         renda.add(jLabelRendaFamiliar);
         renda.add(jTextFieldRendaFamiliar);
 
-        JPanel check = new JPanel(new GridLayout(2, 1));
-        jCheckBoxPrivado = new JCheckBox("Privado");
-        check.add(jCheckBoxPrivado);
+        JPanel check = new JPanel();
+        jCheckBoxSexoM = new JCheckBox("Masculino");
+        jCheckBoxSexoF = new JCheckBox("Feminino");
+        check.add(jCheckBoxSexoM);
+        check.add(jCheckBoxSexoF);
 
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        jButtonSalvar = new JButton("Salvar");
+        jButtonEditar = new JButton("Editar");
+        jButtonExcluir = new JButton("Excluir");
+        buttons.add(jButtonSalvar);
+        buttons.add(jButtonEditar);
+        buttons.add(jButtonExcluir);
+        
         panelComponents.add(nome);
         panelComponents.add(ano);
         panelComponents.add(cpf);
-        panelComponents.add(sexo);
+        panelComponents.add(Curso);
         panelComponents.add(renda);
         panelComponents.add(check);
+        panelComponents.add(buttons);
 
         panelLeft.add(panelComponents);
         tudo.add(panelLeft, BorderLayout.WEST);
@@ -176,25 +195,16 @@ public class Principal implements ActionListener {
         JPanel panelRight = new JPanel(new BorderLayout());
         jTable = new JTable();
         configurarJTable();
-        jScrollPane = new JScrollPane(jTable);
+        jScrollPane = new JScrollPane(jTable);        
 
-        JPanel panelButtons = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        jButtonAdicionar = new JButton("Adicionar");
-        jButtonEditar = new JButton("Editar");
-        jButtonExcluir = new JButton("Excluir");
-        panelButtons.add(jButtonAdicionar);
-        panelButtons.add(jButtonEditar);
-        panelButtons.add(jButtonExcluir);
-
-        panelRight.add(jScrollPane, BorderLayout.CENTER);
-        panelRight.add(panelButtons, BorderLayout.SOUTH);
+        panelRight.add(jScrollPane, BorderLayout.CENTER);  
 
         tudo.add(panelRight, BorderLayout.EAST);
 
         configurarJComboBox();
         configurarJFormattedTextField();
 
-        acaoBotaoAdicionar();
+        acaoBotaoSalvar();
         acaoEditar();
         acaoExcluir();
 
@@ -205,35 +215,34 @@ public class Principal implements ActionListener {
         dtm = new DefaultTableModel();
         dtm.addColumn("Nome");
         dtm.addColumn("CPF");
-        dtm.addColumn("Renda Familiar");
+        dtm.addColumn("Curso");
         jTable.setModel(dtm);
     }
 
-    private void acaoBotaoAdicionar() {
-        jButtonAdicionar.addActionListener(new ActionListener() {
+    private void acaoBotaoSalvar() {
+        jButtonSalvar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (jTextFieldNome.getText().trim().isEmpty()) {
+                if (jTextFieldNome.getText().isEmpty()) {
                     JOptionPane.showMessageDialog(null, "Nome deve ser preenchido");
                     jTextFieldNome.requestFocus();
                     return;
                 }
 
-                if (jTextFieldNome.getText().trim().length() < 3) {
+                if (jTextFieldNome.getText().length() < 3) {
                     JOptionPane.showMessageDialog(null, "Nome deve conter 3 caracteres");
                     jTextFieldNome.requestFocus();
                     return;
                 }
 
-                if (jTextFieldAno.getText().trim().isEmpty()) {
+                if (jTextFieldAno.getText().isEmpty()) {
                     JOptionPane.showMessageDialog(null, "Ano deve ser preenchido");
                     jTextFieldAno.requestFocus();
                     return;
                 }
                 short ano = 0;
                 try {
-                    ano = Short.parseShort(
-                            jTextFieldAno.getText().trim());
+                    ano = Short.parseShort(jTextFieldAno.getText());
                     if (ano < 1500) {
                         JOptionPane.showMessageDialog(null, "Ano não pode ser menor que 1500");
                         jTextFieldAno.requestFocus();
@@ -251,8 +260,7 @@ public class Principal implements ActionListener {
                     return;
                 }
 
-                String cpf = jFormattedTextFieldCPF.getText()
-                        .replace(".", "").replace("-", "");
+                String cpf = jFormattedTextFieldCPF.getText().replace(".", "").replace("-", "");
 
                 if (cpf.isEmpty()) {
                     JOptionPane.showMessageDialog(null, "CPF deve ser preenchido");
@@ -266,14 +274,13 @@ public class Principal implements ActionListener {
                     return;
                 }
 
-                //if(jComboBoxCategoria.getSelectedIndex() == -1)
-                if (jComboBoxSexo.getSelectedItem() == null) {
-                    JOptionPane.showMessageDialog(null, "Sexo deve ser selecionado");
-                    jComboBoxSexo.showPopup();
+                //if(jComboBoxCurso.getSelectedIndex() == -1)
+                if (jComboBoxCurso.getSelectedItem() == null) {
+                    JOptionPane.showMessageDialog(null, "Curso deve ser selecionado");
+                    jComboBoxCurso.showPopup();
                     return;
                 }
-                String rendaFamiliar = jTextFieldRendaFamiliar
-                        .getText().trim().toUpperCase().replace("R", "").replace("$", "").replace(".", "").replace(",", ".").replace(" ", "");
+                String rendaFamiliar = jTextFieldRendaFamiliar.getText().toUpperCase().replace("R", "").replace("$", "").replace(".", "").replace(",", ".").replace(" ", "");
                 if (rendaFamiliar.isEmpty()) {
                     JOptionPane.showMessageDialog(null, "Renda Familiar deve ser preenchida");
                     jTextFieldRendaFamiliar.requestFocus();
@@ -284,12 +291,12 @@ public class Principal implements ActionListener {
                 try {
                     renda = Double.parseDouble(rendaFamiliar);
                     if (renda < 0) {
-                        JOptionPane.showMessageDialog(null, "Renda Anual deve ser positiva");
+                        JOptionPane.showMessageDialog(null, "Renda Familiar deve ser positiva");
                         jTextFieldRendaFamiliar.requestFocus();
                         return;
                     }
                 } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(null, "Renda Anual deve conter somente números");
+                    JOptionPane.showMessageDialog(null, "Renda Familiar deve conter somente números");
                     jTextFieldRendaFamiliar.requestFocus();
                     return;
                 }
@@ -299,21 +306,24 @@ public class Principal implements ActionListener {
                 aluno.setCpf(cpf);
                 aluno.setRendaFamiliar(renda);
                 aluno.setAno(ano);
-                aluno.setPrivado(jCheckBoxPrivado.isSelected());
-                aluno.setSexo(jComboBoxSexo.getSelectedItem().toString());
+                
+                int sexo = (jCheckBoxSexoM.isSelected() == true) ? 1 : 0;
+                aluno.setSexo((short)sexo);
+                
+                aluno.setCurso(jComboBoxCurso.getSelectedItem().toString());
 
                 if (linhaSelecionada == -1) {
                     alunos.add(aluno);
                     dtm.addRow(new Object[]{
                         aluno.getNome(),
                         aluno.getCpf(),
-                        aluno.getRendaFamiliar()
+                        aluno.getCurso()
                     });
                 } else {
                     alunos.set(linhaSelecionada, aluno);
                     dtm.setValueAt(aluno.getNome(), linhaSelecionada, 0);
                     dtm.setValueAt(aluno.getCpf(), linhaSelecionada, 1);
-                    dtm.setValueAt(aluno.getRendaFamiliar(), linhaSelecionada, 2);
+                    dtm.setValueAt(aluno.getCurso(), linhaSelecionada, 2);
                 }
                 limparCampos();
             }
@@ -324,8 +334,8 @@ public class Principal implements ActionListener {
         jTextFieldAno.setText("");
         jTextFieldNome.setText("");
         jTextFieldRendaFamiliar.setText("");
-        jCheckBoxPrivado.setSelected(false);
-        jComboBoxSexo.setSelectedIndex(-1);
+        jCheckBoxSexoM.setSelected(false);
+        jComboBoxCurso.setSelectedIndex(-1);
         jFormattedTextFieldCPF.setText("");
         jTextFieldNome.requestFocus();
         linhaSelecionada = -1;
@@ -336,7 +346,7 @@ public class Principal implements ActionListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (jTable.getSelectedRow() == -1) {
-                    JOptionPane.showMessageDialog(null, "Seleciona um registro filho");
+                    JOptionPane.showMessageDialog(null, "Selecione um registro");
                     return;
                 }
 
@@ -346,18 +356,35 @@ public class Principal implements ActionListener {
             }
         });
     }
+    
+    private void check() {
+        jCheckBoxSexoF.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(jCheckBoxSexoF.isSelected()){
+                    jCheckBoxSexoM.setSelected(false);
+                }
+            }
+        });
+        jCheckBoxSexoM.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(jCheckBoxSexoM.isSelected()){
+                    jCheckBoxSexoF.setSelected(false);
+                }
+            }
+        });
+    }
 
     private void preencherCampos(Aluno aluno) {
         jTextFieldNome.setText(aluno.getNome());
-        jTextFieldAno.setText(
-                String.valueOf(aluno.getAno())
-        );
-        jTextFieldRendaFamiliar.setText(
-                String.valueOf(aluno.getRendaFamiliar())
-        );
-        jComboBoxSexo.setSelectedItem(
-                aluno.getSexo());
-        jCheckBoxPrivado.setSelected(aluno.isPrivado());
+        jTextFieldAno.setText(String.valueOf(aluno.getAno()));
+        jTextFieldRendaFamiliar.setText(String.valueOf(aluno.getRendaFamiliar()));
+        jComboBoxCurso.setSelectedItem(aluno.getCurso());
+        
+        if(aluno.getSexo() == 1) jCheckBoxSexoM.setSelected(true);
+        else jCheckBoxSexoF.setSelected(true);
+        
         jFormattedTextFieldCPF.setText(aluno.getCpf());
     }
 
@@ -366,13 +393,11 @@ public class Principal implements ActionListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (jTable.getSelectedRow() == -1) {
-                    JOptionPane.showMessageDialog(null, "Seleciona um registro filho");
+                    JOptionPane.showMessageDialog(null, "Selecione um registro");
                     return;
                 }
 
-                int escolha = JOptionPane.showConfirmDialog(null,
-                        "Deseja realmente apagar?", "Aviso",
-                        JOptionPane.YES_NO_OPTION);
+                int escolha = JOptionPane.showConfirmDialog(null,"Deseja realmente apagar?", "Aviso",JOptionPane.YES_NO_OPTION);
                 if (escolha == JOptionPane.YES_OPTION) {
                     linhaSelecionada = jTable.getSelectedRow();
                     dtm.removeRow(linhaSelecionada);
@@ -381,63 +406,58 @@ public class Principal implements ActionListener {
                 }
             }
         });
-    }   
+    }
 
     @Override
-    public void actionPerformed(ActionEvent ae) {
-//        if (e.getSource() == open) {
-//            chooser = new JFileChooser();
-//            if (chooser.showOpenDialog(menu) == JFileChooser.APPROVE_OPTION) {
-//
-//                Path path = chooser.getSelectedFile().toPath();
-//
-//                try {
-//                    FileReader reader = new FileReader(chooser.getSelectedFile());
-//                    br = new BufferedReader(reader);
-//
-//                    String linhas = null;
-//                    String texto = new String();
-//                    while ((linhas = br.readLine()) != null) {
-//                        texto += linhas;
-//                    }
-//
-//                    br.close();
-//
-//                    int pos = texto.indexOf(";");
-//                    String titulo = texto.substring(0, pos);
-//                    String descricao = texto.substring(pos + 1, texto.length() - 1);
-//
-//                    txtTitulo.setText(titulo);
-//                    txtArea.setText(descricao);
-//                    list.clearSelection();
-//
-//                } catch (IOException ea) {
-//                    // TODO Auto-generated catch block
-//                    ea.printStackTrace();
-//                }
-//            }
-//        }
-//
-//        if (e.getSource() == save) {
-//            chooser = new JFileChooser();
-//            if (chooser.showSaveDialog(menu) == JFileChooser.APPROVE_OPTION) {
-//                String text = txtTitulo.getText() + ";" + txtArea.getText() + ";";
-//                File file = chooser.getSelectedFile();
-//
-//                try {
-//                    FileWriter writer = new FileWriter(file.getPath());
-//                    bw = new BufferedWriter(writer);
-//                    bw.write(text);
-//                    bw.close();
-//                    list.clearSelection();
-//
-//                } catch (Exception ae) {
-//                }
-//            }
-//        }
-//
-//        if (e.getSource() == quit) {                     
-//            if(JOptionPane.showConfirmDialog(null, "Deseja realmente sair?") == 0) System.exit(0);
-//        }
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == open) {
+            chooser = new JFileChooser();
+            if (chooser.showOpenDialog(menu) == JFileChooser.APPROVE_OPTION) {
+
+                Path path = chooser.getSelectedFile().toPath();
+
+                try {
+                    FileReader reader = new FileReader(chooser.getSelectedFile());
+                    br = new BufferedReader(reader);
+                    String linha = null;                                        
+                    while ((linha = br.readLine()) != null) {
+                        dtm.addRow(linha.split("; "));
+                    }
+                    reader.close();
+                    br.close();
+
+                } catch (IOException ea) {
+                    // TODO Auto-generated catch block
+                    ea.printStackTrace();
+                }
+            }
+        }
+
+        if (e.getSource() == save) {
+            chooser = new JFileChooser();
+            if (chooser.showSaveDialog(menu) == JFileChooser.APPROVE_OPTION) {
+
+                try {
+                    File file = chooser.getSelectedFile();
+                    PrintWriter os = new PrintWriter(file);
+
+                    for (int row = 0; row < jTable.getRowCount(); row++) {
+                        for (int col = 0; col < jTable.getColumnCount(); col++) {                                                                                  
+                            os.print(jTable.getValueAt(row, col)+"; ");
+                        }
+                    }
+
+                    os.close();
+
+                } catch (Exception ae) {
+                }
+            }
+        }
+
+        if (e.getSource() == quit) {
+            if (JOptionPane.showConfirmDialog(null, "Deseja realmente sair?") == 0) {
+                System.exit(0);
+            }
+        }
     }
 }
