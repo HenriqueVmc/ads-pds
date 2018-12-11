@@ -1,28 +1,23 @@
 package pct;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -30,7 +25,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -38,9 +32,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.MaskFormatter;
@@ -75,7 +67,6 @@ public class Principal implements ActionListener {
     JMenuBar menuBar;
     JMenu menu;
     JMenuItem open, save, quit;
-    //DefaultListModel listModel;
 
     JFileChooser chooser;
     FileInputStream fis;
@@ -207,6 +198,7 @@ public class Principal implements ActionListener {
         acaoBotaoSalvar();
         acaoEditar();
         acaoExcluir();
+        check();
 
         jFrame.setVisible(true);
     }
@@ -218,114 +210,27 @@ public class Principal implements ActionListener {
         dtm.addColumn("Curso");
         jTable.setModel(dtm);
     }
-
+    
+    short ano; double renda; String cpf;
     private void acaoBotaoSalvar() {
         jButtonSalvar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (jTextFieldNome.getText().isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Nome deve ser preenchido");
-                    jTextFieldNome.requestFocus();
-                    return;
-                }
-
-                if (jTextFieldNome.getText().length() < 3) {
-                    JOptionPane.showMessageDialog(null, "Nome deve conter 3 caracteres");
-                    jTextFieldNome.requestFocus();
-                    return;
-                }
-
-                if (jTextFieldAno.getText().isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Ano deve ser preenchido");
-                    jTextFieldAno.requestFocus();
-                    return;
-                }
-                short ano = 0;
-                try {
-                    ano = Short.parseShort(jTextFieldAno.getText());
-                    if (ano < 1500) {
-                        JOptionPane.showMessageDialog(null, "Ano não pode ser menor que 1500");
-                        jTextFieldAno.requestFocus();
-                        return;
-                    }
-                    int anoAtual = LocalDate.now().getYear();
-                    if (ano > anoAtual) {
-                        JOptionPane.showMessageDialog(null, "Ano não deve ser maior que o ano " + anoAtual);
-                        jTextFieldAno.requestFocus();
-                        return;
-                    }
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(null, "Ano deve conter somente números");
-                    jTextFieldAno.requestFocus();
-                    return;
-                }
-
-                String cpf = jFormattedTextFieldCPF.getText().replace(".", "").replace("-", "");
-
-                if (cpf.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "CPF deve ser preenchido");
-                    jFormattedTextFieldCPF.requestFocus();
-                    return;
-                }
-
-                if (cpf.length() < 11) {
-                    JOptionPane.showMessageDialog(null, "CPF deve conter 11 digitos");
-                    jFormattedTextFieldCPF.requestFocus();
-                    return;
-                }
-
-                //if(jComboBoxCurso.getSelectedIndex() == -1)
-                if (jComboBoxCurso.getSelectedItem() == null) {
-                    JOptionPane.showMessageDialog(null, "Curso deve ser selecionado");
-                    jComboBoxCurso.showPopup();
-                    return;
-                }
-                String rendaFamiliar = jTextFieldRendaFamiliar.getText().toUpperCase().replace("R", "").replace("$", "").replace(".", "").replace(",", ".").replace(" ", "");
-                if (rendaFamiliar.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Renda Familiar deve ser preenchida");
-                    jTextFieldRendaFamiliar.requestFocus();
-                    return;
-                }
-
-                double renda = 0;
-                try {
-                    renda = Double.parseDouble(rendaFamiliar);
-                    if (renda < 0) {
-                        JOptionPane.showMessageDialog(null, "Renda Familiar deve ser positiva");
-                        jTextFieldRendaFamiliar.requestFocus();
-                        return;
-                    }
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(null, "Renda Familiar deve conter somente números");
-                    jTextFieldRendaFamiliar.requestFocus();
-                    return;
-                }
+                            	
+            	if(validarCampos() == 0) return;
 
                 Aluno aluno = new Aluno();
-                aluno.setNome(jTextFieldNome.getText());
-                aluno.setCpf(cpf);
-                aluno.setRendaFamiliar(renda);
-                aluno.setAno(ano);
+               
+                salvarAluno(aluno);
                 
-                int sexo = (jCheckBoxSexoM.isSelected() == true) ? 1 : 0;
-                aluno.setSexo((short)sexo);
+                alunos.add(aluno);
+                dtm.addRow(new Object[]{
+                    aluno.getNome(),
+                    aluno.getCpf(),
+                    aluno.getCurso()
+                });
                 
-                aluno.setCurso(jComboBoxCurso.getSelectedItem().toString());
-
-                if (linhaSelecionada == -1) {
-                    alunos.add(aluno);
-                    dtm.addRow(new Object[]{
-                        aluno.getNome(),
-                        aluno.getCpf(),
-                        aluno.getCurso()
-                    });
-                } else {
-                    alunos.set(linhaSelecionada, aluno);
-                    dtm.setValueAt(aluno.getNome(), linhaSelecionada, 0);
-                    dtm.setValueAt(aluno.getCpf(), linhaSelecionada, 1);
-                    dtm.setValueAt(aluno.getCurso(), linhaSelecionada, 2);
-                }
-                limparCampos();
+                limparCampos(); 
             }
         });
     }
@@ -352,9 +257,31 @@ public class Principal implements ActionListener {
 
                 linhaSelecionada = jTable.getSelectedRow();
                 Aluno aluno = alunos.get(linhaSelecionada);
-                preencherCampos(aluno);
+               
+                salvarAluno(aluno);
+                
+                alunos.set(linhaSelecionada, aluno);
+                dtm.setValueAt(aluno.getNome(), linhaSelecionada, 0);
+                dtm.setValueAt(aluno.getCpf(), linhaSelecionada, 1);
+                dtm.setValueAt(aluno.getCurso(), linhaSelecionada, 2);
+                
+                limparCampos(); 
             }
         });
+        
+        jTable.addMouseListener(new MouseAdapter() {		
+        	public void mouseClicked(MouseEvent e) {
+                if (jTable.getSelectedRow() == -1) {
+                    JOptionPane.showMessageDialog(null, "Selecione um registro");
+                    return;
+                }
+                
+        		linhaSelecionada = jTable.getSelectedRow();
+                Aluno aluno = alunos.get(linhaSelecionada);
+                preencherCampos(aluno);
+        	}
+        });
+        
     }
     
     private void check() {
@@ -410,6 +337,7 @@ public class Principal implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+    	
         if (e.getSource() == open) {
             chooser = new JFileChooser();
             if (chooser.showOpenDialog(menu) == JFileChooser.APPROVE_OPTION) {
@@ -423,6 +351,14 @@ public class Principal implements ActionListener {
                     while ((linha = br.readLine()) != null) {
                         dtm.addRow(linha.split("; "));
                     }
+                    
+//                    Aluno aluno = new Aluno();
+//                    aluno.setNome(dtm.getColumnClass(0).toString());
+//                    aluno.setAno((dtm.getColumnClass(1).toString());
+//                    aluno.setNome(dtm.getColumnClass(2).toString());                  
+//                    preencherCampos(aluno);                                        
+//                    salvarAluno(aluno);
+                    
                     reader.close();
                     br.close();
 
@@ -458,6 +394,103 @@ public class Principal implements ActionListener {
             if (JOptionPane.showConfirmDialog(null, "Deseja realmente sair?") == 0) {
                 System.exit(0);
             }
+        }                      
+        
+    }
+    
+    private int validarCampos() {
+    	ano = 0; renda = 0; cpf = "";
+    	
+    	if (jTextFieldNome.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Nome deve ser preenchido");
+            jTextFieldNome.requestFocus();
+            return 0;
         }
+
+        if (jTextFieldNome.getText().length() < 3) {
+            JOptionPane.showMessageDialog(null, "Nome deve conter 3 caracteres");
+            jTextFieldNome.requestFocus();
+            return 0;
+        }
+
+        if (jTextFieldAno.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Ano deve ser preenchido");
+            jTextFieldAno.requestFocus();
+            return 0;
+        }
+        ano = 0;
+        try {
+            ano = Short.parseShort(jTextFieldAno.getText());
+            if (ano < 1500) {
+                JOptionPane.showMessageDialog(null, "Ano não pode ser menor que 1500");
+                jTextFieldAno.requestFocus();
+                return 0;
+            }
+            int anoAtual = LocalDate.now().getYear();
+            if (ano > anoAtual) {
+                JOptionPane.showMessageDialog(null, "Ano não deve ser maior que o ano " + anoAtual);
+                jTextFieldAno.requestFocus();
+                return 0;
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(null, "Ano deve conter somente números");
+            jTextFieldAno.requestFocus();
+            return 0;
+        }
+
+        cpf = jFormattedTextFieldCPF.getText().replace(".", "").replace("-", "");
+
+        if (cpf.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "CPF deve ser preenchido");
+            jFormattedTextFieldCPF.requestFocus();
+            return 0;
+        }
+
+        if (cpf.length() < 11) {
+            JOptionPane.showMessageDialog(null, "CPF deve conter 11 digitos");
+            jFormattedTextFieldCPF.requestFocus();
+            return 0;
+        }
+
+        //if(jComboBoxCurso.getSelectedIndex() == -1)
+        if (jComboBoxCurso.getSelectedItem() == null) {
+            JOptionPane.showMessageDialog(null, "Curso deve ser selecionado");
+            jComboBoxCurso.showPopup();
+            return 0;
+        }
+        String rendaFamiliar = jTextFieldRendaFamiliar.getText().toUpperCase().replace("R", "").replace("$", "").replace(".", "").replace(",", ".").replace(" ", "");
+        if (rendaFamiliar.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Renda Familiar deve ser preenchida");
+            jTextFieldRendaFamiliar.requestFocus();
+            return 0;
+        }
+
+        renda = 0;
+        try {
+            renda = Double.parseDouble(rendaFamiliar);
+            if (renda < 0) {
+                JOptionPane.showMessageDialog(null, "Renda Familiar deve ser positiva");
+                jTextFieldRendaFamiliar.requestFocus();
+                return 0;
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(null, "Renda Familiar deve conter somente números");
+            jTextFieldRendaFamiliar.requestFocus();
+            return 0;
+        }
+        return 1;
+    }
+       
+    private void salvarAluno(Aluno aluno) {
+    	
+    	aluno.setNome(jTextFieldNome.getText());
+        aluno.setCpf(cpf);
+        aluno.setRendaFamiliar(renda);
+        aluno.setAno(ano);
+        
+        int sexo = (jCheckBoxSexoM.isSelected() == true) ? 1 : 0;
+        aluno.setSexo((short)sexo);
+        
+        aluno.setCurso(jComboBoxCurso.getSelectedItem().toString());   
     }
 }
